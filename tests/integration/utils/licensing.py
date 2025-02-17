@@ -100,7 +100,7 @@ def licensing_with_online_licensing(matlab_proxy_url):
 
     # Verifies if licensing is successful by checking the status information
     _verify_licensing(page)
-    sleep(2)
+    time.sleep(2)
     _close_resources(playwright, browser)
 
 
