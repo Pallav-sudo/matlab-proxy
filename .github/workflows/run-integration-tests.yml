@@ -68,7 +68,7 @@ jobs:
           python3 -c "from tests.integration.utils import licensing; licensing.license_matlab_proxy()"
 
       - name: Test with pytest
-        run: python3 -m pytest tests/integration -vs --headed --browser all --video on
+        run: python3 -m pytest tests/integration -vs --headed --video on
 
       - name: Copy Log File
         if: ${{ always() }}
