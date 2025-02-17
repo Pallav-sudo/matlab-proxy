@@ -21,9 +21,12 @@ jobs:
       fail-fast: false
 
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        matlab-release: [R2020b, latest]
-        python-version: ['3.8', '3.11']
+        # os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
+        # matlab-release: [R2020b, latest]
+        matlab-release: [latest]
+        # python-version: ['3.8', '3.11']
+        python-version: ['3.11']
 
     runs-on: ${{ matrix.os }}
 

@@ -4,6 +4,7 @@ import logging
 from playwright.sync_api import Page, Error, sync_playwright, expect
 from tests.integration.utils import integration_tests_utils as utils
 from tests.utils.logging_util import create_integ_test_logger
+import time
 
 # Configure logging
 _logger = create_integ_test_logger(__name__)
@@ -99,6 +100,7 @@ def licensing_with_online_licensing(matlab_proxy_url):
 
     # Verifies if licensing is successful by checking the status information
     _verify_licensing(page)
+    sleep(2)
     _close_resources(playwright, browser)
 
 
