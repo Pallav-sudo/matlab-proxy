@@ -63,7 +63,7 @@ jobs:
           python3 -c "from tests.integration.utils import licensing; licensing.license_matlab_proxy()"
 
       - name: Test with pytest
-        run: python3 -m pytest tests/integration -vs
+        run: python3 -m pytest tests/integration -vs --headed --browser all --video on
 
       - name: Copy Log File
         if: ${{ always() }}
@@ -77,3 +77,10 @@ jobs:
           name: MATLAB Proxy Integration Tests Log File ${{ matrix.os }}${{ matrix.matlab-release }}${{ matrix.python-version }}
           path: ${{ matrix.os }}${{ matrix.matlab-release }}${{ matrix.python-version }}.log
           retention-days: 7
+
+      - name: Upload video artifacts
+        uses: actions/upload-artifact@v2
+        if: failure() # Only upload videos if tests fail
+        with:
+          name: playwright-videos
+          path: tests/integration/videos/

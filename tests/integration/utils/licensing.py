@@ -18,6 +18,13 @@ TIMEOUTS = {
 
 POLL_INTERVAL = 1000
 
+def ensure_directory_exists(path):
+    """Ensure that the directory exists, and if not, create it."""
+    if not os.path.exists(path):
+        os.makedirs(path)
+        _logger.info(f"Created directory: {path}")
+    else:
+        _logger.info(f"Directory already exists: {path}")
 
 def _get_matlab_proxy_url():
     # import integration_tests_utils as utils
@@ -118,9 +125,11 @@ def _wait_for_login_iframe(matlab_proxy_page):
 
 def _launch_browser(headless: bool = True) -> tuple:
     """Launches the browser and returns the browser and page objects."""
+    # Ensure the video directory exists
+    ensure_directory_exists("tests/integration/videos/")
     playwright = sync_playwright().start()
     browser = playwright.chromium.launch(headless=headless)
-    context = browser.new_context(ignore_https_errors=True)
+    context = browser.new_context(ignore_https_errors=True, record_video_dir="tests/integration/videos/")
     page = context.new_page()
     return playwright, browser, page
 
