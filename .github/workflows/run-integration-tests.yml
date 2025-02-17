@@ -55,6 +55,11 @@ jobs:
       - name: Ensure browsers are installed for playwright
         run: python3 -m playwright install --with-deps
 
+      - name: Kill MathWorks Service Process
+        run: |
+          pkill -f 'MathWorks/Service' || true
+          echo "All MathWorks Service processes have been terminated."
+
       - name: License MATLAB Proxy
         env:
           TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
