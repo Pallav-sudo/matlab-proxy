@@ -79,7 +79,7 @@ jobs:
           retention-days: 7
 
       - name: Upload video artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure() # Only upload videos if tests fail
         with:
           name: playwright-videos
