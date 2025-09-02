@@ -10,6 +10,7 @@ from datetime import timedelta, timezone
 from http import HTTPStatus, cookies
 
 import pytest
+import pytest_asyncio
 from aiohttp import WSMsgType
 from aiohttp.web import WebSocketResponse
 from multidict import CIMultiDict
@@ -68,7 +69,7 @@ def test_configure_no_proxy_in_env(monkeypatch, no_proxy_user_configuration):
     )
 
 
-def test_create_app(event_loop):
+async def test_create_app():
     """Test if aiohttp server is being created successfully.
 
     Checks if the aiohttp server is created successfully, routes, startup and cleanup
@@ -83,7 +84,7 @@ def test_create_app(event_loop):
     # By default there is 1 for clean up task
     assert len(test_server.on_shutdown) == 1
     assert len(test_server.on_cleanup) == 1
-    event_loop.run_until_complete(test_server["state"].stop_server_tasks())
+    await test_server["state"].stop_server_tasks()
 
 
 def get_email():
@@ -230,6 +231,56 @@ def test_marshal_error(actual_error, expected_error):
     """
     assert app.marshal_error(actual_error) == expected_error
 
+async def async_configure_and_start(app_instance):
+    """Async version of app.configure_and_start that doesn't use run_until_complete"""
+    # Get web logger
+    web_logger = None if not mwi_env.is_web_logging_enabled() else app.logger
+
+    # Setup the session storage,
+    # Uniqified per session to prevent multiple proxy servers on the same FQDN from interfering with each other.
+    uniqify_session_cookie = app.secrets.token_hex()
+    fernet_key = app.fernet.Fernet.generate_key()
+    f = app.fernet.Fernet(fernet_key)
+    app.aiohttp_session_setup(
+        app_instance,
+        app.EncryptedCookieStorage(
+            f, cookie_name="matlab-proxy-session-" + uniqify_session_cookie
+        ),
+    )
+
+    # Setup runner
+    runner = app.web.AppRunner(app_instance, logger=web_logger, access_log=web_logger)
+    
+    # Use await instead of run_until_complete
+    await runner.setup()
+
+    # Prepare site to start, then set port of the app.
+    site = app.util.prepare_site(app_instance, runner)
+
+    # This would be required when MWI_APP_PORT env variable is not set and the site starts on a random port.
+    app_instance["settings"]["app_port"] = site._port
+
+    # Update the site origin in settings.
+    # The origin will be used for communicating with the Embedded connector.
+    app_instance["settings"]["mwi_server_url"] = app.util.get_access_url(app_instance)
+
+    # Use await instead of run_until_complete
+    await site.start()
+
+    app.logger.debug("Starting MATLAB proxy app")
+    app.logger.debug(
+        f" with base_url: {app_instance['settings']['base_url']} and app_port:{app_instance['settings']['app_port']}."
+    )
+
+    app_instance["state"].create_server_info_file()
+
+    # Startup tasks are being done here as app.on_startup leads
+    # to a race condition for mwi_server_url information which is
+    # extracted from the site info.
+    # Use await instead of run_until_complete
+    await app.start_background_tasks(app_instance)
+    
+    return app_instance
 
 class FakeServer:
     """Context Manager class which returns a web server wrapped in aiohttp_client pytest fixture
@@ -239,18 +290,20 @@ class FakeServer:
     Setting up the server in the context of Pytest.
     """
 
-    def __init__(self, event_loop, aiohttp_client):
-        self.loop = event_loop
+    def __init__(self, aiohttp_client):
         self.aiohttp_client = aiohttp_client
+        self.server = None
+        self.client = None
 
-    def __enter__(self):
-        server = app.create_app()
-        self.server = app.configure_and_start(server)
-        return self.loop.run_until_complete(self.aiohttp_client(self.server))
+    async def __aenter__(self):
+        self.server = app.create_app()
+        self.server = await async_configure_and_start(self.server)
+        self.client = await self.aiohttp_client(self.server)
+        return self.client
 
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        self.loop.run_until_complete(self.server.shutdown())
-        self.loop.run_until_complete(self.server.cleanup())
+    async def __aexit__(self, exc_type, exc_value, exc_traceback):
+        await self.server.shutdown()
+        await self.server.cleanup()
 
 
 @pytest.fixture
@@ -281,12 +334,11 @@ def mock_messages(mocker):
     ]
 
 
-@pytest.fixture(name="test_server")
-def test_server_fixture(event_loop, aiohttp_client, monkeypatch, request):
+@pytest_asyncio.fixture
+async def test_server(aiohttp_client, monkeypatch, request):
     """A pytest fixture which yields a test server to be used by tests.
 
     Args:
-        loop (Event loop): The built-in event loop provided by pytest.
         aiohttp_client (aiohttp_client): Built-in pytest fixture used as a wrapper to the aiohttp web server.
 
     Yields:
@@ -305,7 +357,7 @@ def test_server_fixture(event_loop, aiohttp_client, monkeypatch, request):
         monkeypatch.setenv(env_var_name, env_var_value)
 
     try:
-        with FakeServer(event_loop, aiohttp_client) as test_server:
+        async with FakeServer(aiohttp_client) as test_server:
             yield test_server
 
     except ProcessLookupError:

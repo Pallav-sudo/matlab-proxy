@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Optional
 
 import pytest
+import pytest_asyncio
 from matlab_proxy import settings
 
 from matlab_proxy import settings
@@ -55,13 +56,12 @@ def sample_settings_fixture(tmp_path):
     }
 
 
-@pytest.fixture
-def app_state_fixture(sample_settings_fixture, event_loop):
+@pytest_asyncio.fixture
+async def app_state_fixture(sample_settings_fixture):
     """A pytest fixture which returns an instance of AppState class with no errors.
 
     Args:
         sample_settings_fixture (dict): A dictionary of sample settings to be used by
-        event_loop : A pytest builtin fixture
 
     Returns:
         AppState: An object of the AppState class
@@ -72,7 +72,7 @@ def app_state_fixture(sample_settings_fixture, event_loop):
 
     yield app_state
 
-    event_loop.run_until_complete(app_state.stop_server_tasks())
+    await app_state.stop_server_tasks()
 
 
 @pytest.fixture
@@ -108,14 +108,13 @@ def app_state_with_token_auth_fixture(
     return app_state_fixture
 
 
-@pytest.fixture
-def mocker_os_patching_fixture(mocker, platform, event_loop):
+@pytest_asyncio.fixture
+async def mocker_os_patching_fixture(mocker, platform):
     """A pytest fixture which patches the is_* functions in system.py module
 
     Args:
         mocker : Built in pytest fixture
         platform (str): A string representing "windows", "linux" or "mac"
-        event_loop : A pytest builtin fixture
 
     Returns:
         mocker: Built in pytest fixture with patched calls to system.py module.
@@ -124,7 +123,7 @@ def mocker_os_patching_fixture(mocker, platform, event_loop):
     mocker.patch("matlab_proxy.app_state.system.is_windows", return_value=False)
     mocker.patch("matlab_proxy.app_state.system.is_mac", return_value=False)
     mocker.patch("matlab_proxy.app_state.system.is_posix", return_value=False)
-    mocker.patch("matlab_proxy.app_state.util.get_event_loop", return_value=event_loop)
+    mocker.patch("matlab_proxy.app_state.util.get_event_loop", return_value=asyncio.get_event_loop())
 
     if platform == "linux":
         mocker.patch("matlab_proxy.app_state.system.is_linux", return_value=True)

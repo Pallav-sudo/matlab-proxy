@@ -9,6 +9,7 @@ from datetime import timedelta, timezone
 from http import HTTPStatus
 
 import pytest
+import pytest_asyncio
 from matlab_proxy import settings
 from matlab_proxy.util import mw, system
 from matlab_proxy.util.mwi import exceptions
@@ -519,7 +520,7 @@ def test_range_matlab_connector_ports():
     not system.is_linux(),
     reason="Xvfb is only required on linux based operating systems",
 )
-async def test_create_xvfb_process(event_loop):
+async def test_create_xvfb_process():
     """Test to check if more than 1 xvfb process can be created with -displayfd flag
 
     Creates 2 xvfb processes with '-displayfd' flag and  checks if the processes are
