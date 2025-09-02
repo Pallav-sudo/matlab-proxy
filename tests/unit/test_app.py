@@ -10,6 +10,7 @@ from datetime import timedelta, timezone
 from http import HTTPStatus, cookies
 
 import pytest
+import pytest_asyncio
 from aiohttp import WSMsgType
 from aiohttp.web import WebSocketResponse
 from multidict import CIMultiDict
@@ -230,6 +231,56 @@ def test_marshal_error(actual_error, expected_error):
     """
     assert app.marshal_error(actual_error) == expected_error
 
+async def async_configure_and_start(app_instance):
+    """Async version of app.configure_and_start that doesn't use run_until_complete"""
+    # Get web logger
+    web_logger = None if not mwi_env.is_web_logging_enabled() else app.logger
+
+    # Setup the session storage,
+    # Uniqified per session to prevent multiple proxy servers on the same FQDN from interfering with each other.
+    uniqify_session_cookie = app.secrets.token_hex()
+    fernet_key = app.fernet.Fernet.generate_key()
+    f = app.fernet.Fernet(fernet_key)
+    app.aiohttp_session_setup(
+        app_instance,
+        app.EncryptedCookieStorage(
+            f, cookie_name="matlab-proxy-session-" + uniqify_session_cookie
+        ),
+    )
+
+    # Setup runner
+    runner = app.web.AppRunner(app_instance, logger=web_logger, access_log=web_logger)
+    
+    # Use await instead of run_until_complete
+    await runner.setup()
+
+    # Prepare site to start, then set port of the app.
+    site = app.util.prepare_site(app_instance, runner)
+
+    # This would be required when MWI_APP_PORT env variable is not set and the site starts on a random port.
+    app_instance["settings"]["app_port"] = site._port
+
+    # Update the site origin in settings.
+    # The origin will be used for communicating with the Embedded connector.
+    app_instance["settings"]["mwi_server_url"] = app.util.get_access_url(app_instance)
+
+    # Use await instead of run_until_complete
+    await site.start()
+
+    app.logger.debug("Starting MATLAB proxy app")
+    app.logger.debug(
+        f" with base_url: {app_instance['settings']['base_url']} and app_port:{app_instance['settings']['app_port']}."
+    )
+
+    app_instance["state"].create_server_info_file()
+
+    # Startup tasks are being done here as app.on_startup leads
+    # to a race condition for mwi_server_url information which is
+    # extracted from the site info.
+    # Use await instead of run_until_complete
+    await app.start_background_tasks(app_instance)
+    
+    return app_instance
 
 async def async_configure_and_start(app_instance):
     """Async version of app.configure_and_start"""

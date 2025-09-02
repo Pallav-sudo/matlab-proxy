@@ -1,6 +1,7 @@
 # Copyright 2023-2025 The MathWorks, Inc.
 
 import pytest
+import pytest_asyncio
 from aiohttp import web
 from aiohttp_session import setup as aiohttp_session_setup
 from aiohttp_session.cookie_storage import EncryptedCookieStorage

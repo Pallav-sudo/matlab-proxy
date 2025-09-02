@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Optional
 
 import pytest
+import pytest_asyncio
 from matlab_proxy import settings
 
 from matlab_proxy import settings

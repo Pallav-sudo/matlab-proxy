@@ -6,6 +6,7 @@ from pathlib import Path
 
 import matlab_proxy
 import pytest
+import pytest_asyncio
 from matlab_proxy.util.mwi import environment_variables as mwi_env
 
 from tests.unit.test_app import FakeServer
