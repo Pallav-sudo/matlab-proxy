@@ -206,7 +206,9 @@ class RealMATLABServer:
             "MWI_BASE_URL": self.mwi_base_url,
         }
 
-        self.proc = await utils.start_matlab_proxy_app(out=self.dpipe[1], input_env=input_env)
+        self.proc = await utils.start_matlab_proxy_app(
+            out=self.dpipe[1], input_env=input_env
+        )
 
         utils.wait_server_info_ready(self.mwi_app_port)
         parsed_url = urlparse(utils.get_connection_string(self.mwi_app_port))
