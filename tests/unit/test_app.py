@@ -233,7 +233,7 @@ def test_marshal_error(actual_error, expected_error):
 
 
 async def async_configure_and_start(app_instance):
-    """Async version of app.configure_and_start that doesn't use run_until_complete"""
+    """Async version of app.configure_and_start"""
     # Get web logger
     web_logger = None if not mwi_env.is_web_logging_enabled() else app.logger
 
@@ -250,9 +250,8 @@ async def async_configure_and_start(app_instance):
     )
 
     # Setup runner
-    runner = app.web.AppRunner(app_instance, logger=web_logger, access_log=web_logger)
+    runner = app.web.AppRunner(app_instance, access_log=web_logger)
 
-    # Use await instead of run_until_complete
     await runner.setup()
 
     # Prepare site to start, then set port of the app.
@@ -264,8 +263,6 @@ async def async_configure_and_start(app_instance):
     # Update the site origin in settings.
     # The origin will be used for communicating with the Embedded connector.
     app_instance["settings"]["mwi_server_url"] = app.util.get_access_url(app_instance)
-
-    # Use await instead of run_until_complete
     await site.start()
 
     app.logger.debug("Starting MATLAB proxy app")
