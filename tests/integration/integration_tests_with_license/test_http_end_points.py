@@ -171,18 +171,6 @@ class RealMATLABServer:
     Setting up the server in the context of Pytest.
     """
 
-    def __init__(self):
-        self.proc = None
-        self.dpipe = None
-        self.mwi_app_port = None
-        self.matlab_config_file_path = None
-        self.temp_dir_path = None
-        self.temp_dir_name = None
-        self.mwi_base_url = None
-        self.headers = None
-        self.connection_scheme = None
-        self.url = None
-
     async def __aenter__(self):
         # Store the matlab proxy logs in os.pipe for testing
         # os.pipe2 is only supported in Linux systems
@@ -254,7 +242,7 @@ class RealMATLABServer:
 
 
 # Fixtures
-@pytest_asyncio.fixture
+@pytest.fixture
 async def matlab_proxy_app_fixture():
     """A pytest fixture which yields a real matlab server to be used by tests.
 

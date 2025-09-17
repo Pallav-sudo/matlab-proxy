@@ -125,7 +125,7 @@ def mock_settings_get_fixture(mocker):
     )
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def test_server(
     aiohttp_client,
     build_frontend,

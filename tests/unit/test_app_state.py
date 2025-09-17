@@ -56,7 +56,7 @@ def sample_settings_fixture(tmp_path):
     }
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def app_state_fixture(sample_settings_fixture):
     """A pytest fixture which returns an instance of AppState class with no errors.
 
@@ -108,7 +108,7 @@ def app_state_with_token_auth_fixture(
     return app_state_fixture
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def mocker_os_patching_fixture(mocker, platform):
     """A pytest fixture which patches the is_* functions in system.py module
 

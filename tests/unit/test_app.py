@@ -290,9 +290,9 @@ class FakeServer:
     """
 
     def __init__(self, aiohttp_client):
-        self.aiohttp_client = aiohttp_client
-        self.server = None
-        self.client = None
+        self.aiohttp_client = aiohttp_client  # This is the pytest fixture (factory function) that is passed to the constructor
+        self.server = None  # This will hold the created server instance
+        self.client = None  # This will hold the actual client instance created by calling the factory function with our server
 
     async def __aenter__(self):
         self.server = app.create_app()
@@ -333,7 +333,7 @@ def mock_messages(mocker):
     ]
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def test_server(aiohttp_client, monkeypatch, request):
     """A pytest fixture which yields a test server to be used by tests.
 

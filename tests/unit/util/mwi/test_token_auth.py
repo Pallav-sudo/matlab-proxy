@@ -89,7 +89,7 @@ async def fake_endpoint(request):
     return web.Response(body="value: {}".format(request.app["value"]).encode("utf-8"))
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def fake_server_with_auth_enabled(
     aiohttp_client, monkeypatch, get_custom_auth_token_str
 ):
@@ -256,7 +256,7 @@ async def test_get_value_with_token_in_query_params(
 ## Create a fake_server without authentication enabled, and test that you can access data.
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def fake_server_without_auth_enabled(aiohttp_client, monkeypatch):
     auth_enablement = "False"
     monkeypatch.setenv(
