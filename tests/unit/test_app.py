@@ -10,7 +10,6 @@ from datetime import timedelta, timezone
 from http import HTTPStatus, cookies
 
 import pytest
-import pytest_asyncio
 from aiohttp import WSMsgType
 from aiohttp.web import WebSocketResponse
 from multidict import CIMultiDict

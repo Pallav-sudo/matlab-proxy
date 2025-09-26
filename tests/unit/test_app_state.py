@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Optional
 
 import pytest
-import pytest_asyncio
 from matlab_proxy import settings
 
 from matlab_proxy import settings
@@ -123,10 +122,6 @@ async def mocker_os_patching_fixture(mocker, platform):
     mocker.patch("matlab_proxy.app_state.system.is_windows", return_value=False)
     mocker.patch("matlab_proxy.app_state.system.is_mac", return_value=False)
     mocker.patch("matlab_proxy.app_state.system.is_posix", return_value=False)
-    mocker.patch(
-        "matlab_proxy.app_state.util.get_event_loop",
-        return_value=asyncio.get_event_loop(),
-    )
 
     if platform == "linux":
         mocker.patch("matlab_proxy.app_state.system.is_linux", return_value=True)

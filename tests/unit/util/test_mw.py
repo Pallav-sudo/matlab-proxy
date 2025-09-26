@@ -9,7 +9,6 @@ from datetime import timedelta, timezone
 from http import HTTPStatus
 
 import pytest
-import pytest_asyncio
 from matlab_proxy import settings
 from matlab_proxy.util import mw, system
 from matlab_proxy.util.mwi import exceptions
