@@ -2,7 +2,6 @@
 
 import asyncio
 import pytest
-import pytest_asyncio
 import psutil
 
 import inspect
@@ -35,17 +34,12 @@ def test_add_signal_handlers():
         else:
             import signal
 
-    # In posix systems, event loop is modified with new signal handlers
-    if system.is_posix():
-        assert event_loop._signal_handlers is not None
-        assert event_loop._signal_handlers.items() is not None
+            # In a windows system, the signal handlers are added to the 'signal' package.
+            for interrupt_signal in system.get_supported_termination_signals():
+                assert signal.getsignal(interrupt_signal) is not None
 
-    else:
-        import signal
-
-        # In a windows system, the signal handlers are added to the 'signal' package.
-        for interrupt_signal in system.get_supported_termination_signals():
-            assert signal.getsignal(interrupt_signal) is not None
+    finally:
+        test_loop.close()
 
 
 def test_get_child_processes_no_children_initially(mocker):

@@ -9,7 +9,6 @@ from enum import Enum
 import json
 import os
 import pytest
-import pytest_asyncio
 import re
 import requests
 import time
