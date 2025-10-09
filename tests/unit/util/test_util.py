@@ -29,7 +29,8 @@ def test_add_signal_handlers():
         # In posix systems, event loop is modified with new signal handlers
         if system.is_posix():
             assert test_loop._signal_handlers is not None
-            assert test_loop._signal_handlers.items() is not None
+            # Check that the signal handlers dictionary is not empty
+            assert len(test_loop._signal_handlers) > 0
 
         else:
             import signal

@@ -283,7 +283,12 @@ async def async_configure_and_start(app_instance):
     return app_instance
 
 async def async_configure_and_start(app_instance):
-    """Async version of app.configure_and_start"""
+    """Async version of app.configure_and_start
+    This async version is necessary for pytest testing because:
+    1. In the test environment, we're already running inside an event loop managed by pytest-aiohttp
+    2. The app.py configure_and_start uses loop.run_until_complete() which would block the test event loop
+    3. Using 'await' instead allows the test event loop to continue processing other tasks
+    """
     # Get web logger
     web_logger = None if not mwi_env.is_web_logging_enabled() else app.logger
 
