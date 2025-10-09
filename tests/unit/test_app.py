@@ -231,6 +231,7 @@ def test_marshal_error(actual_error, expected_error):
     """
     assert app.marshal_error(actual_error) == expected_error
 
+
 async def async_configure_and_start(app_instance):
     """Async version of app.configure_and_start that doesn't use run_until_complete"""
     # Get web logger
@@ -250,7 +251,7 @@ async def async_configure_and_start(app_instance):
 
     # Setup runner
     runner = app.web.AppRunner(app_instance, logger=web_logger, access_log=web_logger)
-    
+
     # Use await instead of run_until_complete
     await runner.setup()
 
@@ -279,8 +280,9 @@ async def async_configure_and_start(app_instance):
     # extracted from the site info.
     # Use await instead of run_until_complete
     await app.start_background_tasks(app_instance)
-    
+
     return app_instance
+
 
 async def async_configure_and_start(app_instance):
     """Async version of app.configure_and_start
