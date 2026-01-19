@@ -127,7 +127,7 @@ def _check_matlab_status(matlab_proxy_app_fixture, status):
     matlab_status = None
 
     start_time = time.time()
-    while matlab_status != status and (time.time() - start_time < MAX_TIMEOUT):
+    while matlab_status != status and (time.time() - start_time < 900):
         time.sleep(1)
         res = _http_get_request(
             uri,
