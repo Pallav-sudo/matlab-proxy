@@ -319,7 +319,7 @@ def test_matlab_is_up(matlab_proxy_app_fixture):
     status = _check_matlab_status(matlab_proxy_app_fixture, "up")
     assert status == "up"
 
-
+@pytest.mark.timeout(1000)
 def test_stop_matlab(matlab_proxy_app_fixture):
     """Test to check that matlab is in 'down' state when
     we send the delete request to 'stop_matlab' endpoint
