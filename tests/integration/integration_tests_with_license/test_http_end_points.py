@@ -281,6 +281,23 @@ class RealMATLABServer:
 
     async def __aexit__(self, exc_type, exc_value, exc_traceback):
         _logger.info("Tearing down the MATLAB Server.")
+        try:
+            http_endpoint_to_test = "/stop_matlab"
+            stop_url = self.url + http_endpoint_to_test
+            
+            with requests.Session() as s:
+                retries = Retry(total=10, backoff_factor=0.1)
+                s.mount(
+                    f"{self.connection_scheme}://",
+                    HTTPAdapter(max_retries=retries),
+                )
+                s.delete(stop_url, headers=self.headers, verify=False)
+            
+            # Wait for MATLAB to shut down
+            import asyncio
+            await asyncio.sleep(2)
+        except Exception as e:
+            _logger.warning(f"Failed to stop MATLAB via API: {e}")
         await self._terminate_process(timeout=10)
         _logger.debug("Terminated the MATLAB process.")
 
