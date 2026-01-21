@@ -14,6 +14,7 @@ import requests
 import time
 from requests.adapters import HTTPAdapter, Retry
 from urllib.parse import urlparse, parse_qs
+import psutil 
 
 # Local module imports
 import matlab_proxy.settings as settings
@@ -238,15 +239,45 @@ class RealMATLABServer:
 
         process = self.proc
         try:
+            parent = psutil.Process(process.pid)
+            children = parent.children(recursive=True)
+            
+            # Terminate matlab-proxy
             process.terminate()
+            
+            # Terminate all children (including MATLAB)
+            for child in children:
+                try:
+                    child.terminate()
+                except psutil.NoSuchProcess:
+                    pass
+            
+            # Wait for termination
             await asyncio.wait_for(process.wait(), timeout=timeout)
-        except asyncio.TimeoutError:
-            _logger.warning(
-                "Termination of the MATLAB Server process timed out. Attempting to kill."
-            )
-            process.kill()
+            
+        except (asyncio.TimeoutError, psutil.NoSuchProcess):
+            # Force kill if needed
+            try:
+                parent.kill()
+                for child in children:
+                    try:
+                        child.kill()
+                    except:
+                        pass
+            except:
+                pass
             await process.wait()
-            _logger.debug("Killed the MATLAB process after timeout.")
+    
+        # try:
+        #     process.terminate()
+        #     await asyncio.wait_for(process.wait(), timeout=timeout)
+        # except asyncio.TimeoutError:
+        #     _logger.warning(
+        #         "Termination of the MATLAB Server process timed out. Attempting to kill."
+        #     )
+        #     process.kill()
+        #     await process.wait()
+        #     _logger.debug("Killed the MATLAB process after timeout.")
 
     async def __aexit__(self, exc_type, exc_value, exc_traceback):
         _logger.info("Tearing down the MATLAB Server.")
