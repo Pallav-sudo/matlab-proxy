@@ -387,7 +387,9 @@ def test_stop_matlab(matlab_proxy_app_fixture):
             f"{matlab_proxy_app_fixture.connection_scheme}://",
             HTTPAdapter(max_retries=retries),
         )
-        s.delete(stop_url, headers=matlab_proxy_app_fixture.headers, verify=False)
+        response = s.delete(stop_url, headers=matlab_proxy_app_fixture.headers, verify=False)
+        print(f"[DEBUG] Stop MATLAB response status: {response.status_code}")
+        print(f"[DEBUG] Stop MATLAB response body: {response.text}")
 
     status = _check_matlab_status(matlab_proxy_app_fixture, "down")
     assert status == "down"
